@@ -4,11 +4,6 @@ export const state = {
   rawData: "No data",
   preprocessData: [],
   scheduledData: []
-  // nestedData: {},
-  // filteredData: [],
-
-  // selectedTypes: [],
-  // typeOptions: []
 };
 
 export default state;

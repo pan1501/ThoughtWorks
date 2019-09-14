@@ -3,7 +3,8 @@
 .buttons-container {
   display: flex;
   justify-content: center;
-  .upload-button-container, .schedule-button-container{
+  .upload-button-container,
+  .schedule-button-container {
     padding: 1rem;
     label {
       color: black;
@@ -24,29 +25,47 @@
   <div class="buttons-container">
     <div class="upload-button-container">
       <label for="file">Choose a file</label>
-      <input class="upload-button" name="file" id="file" type="file" accept="text/plain" v-on:change="openFile">
+      <input
+        class="upload-button"
+        name="file"
+        id="file"
+        type="file"
+        accept="text/plain"
+        v-on:change="openFile">
     </div>
     <div class="schedule-button-container">
-      <label class="schedule-button" v-on:click="scheduleEvents">Schedule Event</label>
+      <label class="schedule-button" v-on:click="scheduleEvents">
+        Schedule Event
+      </label>
     </div>
   </div>
 </template>
 
 <script>
-import { mapMutations } from "vuex";
+import { mapGetters, mapMutations } from "vuex";
 
 export default {
   name: "ButtonSection",
+  data() {
+    return {
+      buttonStatus: "No event to Schedule"
+    };
+  },
+  computed: {
+    ...mapGetters([
+      "getDataReady"
+    ])
+  },
   methods: {
     ...mapMutations([
         "SET_RAW_DATA",
         "SCHEDULE_EVENTS"
     ]),
-    openFile (event) {
+    openFile(event) {
       var input = event.target;
       var reader = new FileReader();
       reader.onload = () => {
-        this.SET_RAW_DATA(reader.result)
+        this.SET_RAW_DATA(reader.result);
       };
 
       if (input.files[0]) {
@@ -54,7 +73,10 @@ export default {
       }
     },
     scheduleEvents() {
-      this.SCHEDULE_EVENTS();
+      if (this.getDataReady) {
+        this.buttonStatus = "Event Scheduled";
+        this.SCHEDULE_EVENTS();
+      }
     }
   }
 };

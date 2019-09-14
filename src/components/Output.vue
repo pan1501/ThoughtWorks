@@ -3,36 +3,55 @@
   text-align: center;
   font-size: 50px;
 }
-.output-record-container{
-  margin: auto;
-  td:nth-child(1) {
+.tracks-container {
+  display: grid;
+  grid-template-columns: repeat(2, 50%);
+
+  .track-title{
     text-align: center;
+    font-size: 30px;
+    padding: 20px;
   }
-  td:nth-child(2) {
-    text-align: left;
+  .output-record-container{
+    margin: auto;
+    td:nth-child(1) {
+      text-align: center;
+    }
+    td:nth-child(2) {
+      text-align: left;
+    }
   }
 }
 </style>
 
 <template>
-  <table class= "output-record-container" v-if="this.getScheduledData.length > 0">
-    <tr>
-      <th>
-        Event time
-      </th>
-      <th>
-        Event title
-      </th>
-    </tr>
-    <tr  :key="outputRecord.eventTitle" v-for=" outputRecord in outputRecords">
-      <td>
-        {{outputRecord.eventTime}}
-      </td>
-      <td>
-        {{outputRecord.eventTitle}}
-      </td>
-    </tr>
-  </table>
+<div class="tracks-container" v-if="this.getScheduledData.length > 0">
+  <div class="tracks" v-for="(outputTrack, index) in outputTracks" :key="index" >
+    <div class="track-title">
+      <strong>
+        Track {{index + 1}}
+      </strong>
+    </div>
+    <table class= "output-record-container" >
+      <tr>
+        <th>
+          Event time
+        </th>
+        <th>
+          Event title
+        </th>
+      </tr>
+      <tr  :key="scheduledRecords.eventTitle" v-for="scheduledRecords in outputTrack">
+        <td>
+          {{scheduledRecords.eventTime}}
+        </td>
+        <td>
+          {{scheduledRecords.eventTitle}}
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
 </template>
 
 <script>
@@ -44,13 +63,13 @@ export default {
     ...mapGetters([
       "getScheduledData"
     ]),
-    outputRecords() {
-      let OutputRecords = "";
+    outputTracks() {
+      let outputTracks = "";
       if (this.getScheduledData.length > 0) {
-        OutputRecords = this.getScheduledData
+        outputTracks = this.getScheduledData
       }
-      debugger;
-      return OutputRecords;
+
+      return outputTracks;
     }
   }
 };
