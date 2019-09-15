@@ -13,7 +13,7 @@ export const Model = {
     }
     return `${hours}:${minutes} ${timeStamp}`;
   },
-
+  // split event title and event duration from string
   getPreprocessData(rawData) {
     if (!rawData) return [];
     let splitedData = [];
@@ -45,6 +45,7 @@ export const Model = {
     if (preprocessData.length === 0) return [[]];
     this.tracks = [];
     this.scheduledEvents = [];
+    this.recordUsed = [];
     let eventStartTime = 9;
     let currentRecordIndex = preprocessData.indexOf(preprocessData[0]);
     // Get finish time for the first record to start recursion
@@ -62,26 +63,78 @@ export const Model = {
 
   scheduleEvents(eventRecords, currentRecordIndex, eventStartTime, eventFinishTime) {
     let scheduledEvent = {};
-    if (currentRecordIndex === eventRecords.length) {
+    // if current record is already used then skip to next one
+    if (this.recordUsed.includes(currentRecordIndex)) currentRecordIndex++;
+    // if all event is scheduled
+    if (currentRecordIndex >= eventRecords.length) {
+      this.scheduledEvents.push({
+        eventTitle: "Networking Event",
+        // Network event cant start earlier then 4
+        eventTime: (eventStartTime < 16) ? this.convertTimeToMin("16") : this.convertTimeToMin(eventStartTime)
+      });
+      // Push the final scheduled event to track
+      this.tracks.push(this.scheduledEvents);
+      // break the recursion
+      return;
+    } else if (
+      (eventStartTime >= 9 && eventStartTime < 12 && eventFinishTime > 12) ||
+      (eventStartTime >= 13 && eventStartTime < 17 && eventFinishTime > 17)
+    ) {
+      // schedule if there is any small duration event that can fit in before 5PM
+      for (let i = currentRecordIndex; i < eventRecords.length; i++) {
+        eventFinishTime = eventStartTime + eventRecords[i].eventDuration / 60;
+        if (eventFinishTime <= 17) {
+          scheduledEvent.eventTitle = eventRecords[i].originalText;
+          scheduledEvent.eventTime = this.convertTimeToMin(eventStartTime);
+          this.scheduledEvents.push(scheduledEvent);
+          eventStartTime = eventFinishTime;
+          if (eventRecords[i + 1]) {
+            eventFinishTime = eventStartTime + eventRecords[i + 1].eventDuration / 60;
+          }
+          this.recordUsed.push(i);
+        }
+      }
+      this.scheduleEvents(
+        eventRecords,
+        currentRecordIndex,
+        eventStartTime,
+        eventFinishTime
+      );
+    } else if (
+      eventStartTime >= 16 &&
+      eventStartTime <= 17 &&
+      eventFinishTime >= 17
+    ) {
+      // Networking cant start earlier then 4 and later then 5
       this.scheduledEvents.push({
         eventTitle: "Networking Event",
         eventTime: this.convertTimeToMin(eventStartTime)
       });
-
       this.tracks.push(this.scheduledEvents);
-      return;
+      // Start a new track
+      this.scheduledEvents = [];
+      // Reset the start time for the new track
+      eventStartTime = 9;
+      eventFinishTime = eventStartTime + +eventRecords[currentRecordIndex].eventDuration / 60;
+
+      this.scheduleEvents(
+        eventRecords,
+        currentRecordIndex,
+        eventStartTime,
+        eventFinishTime
+      );
       // schedule events that are no earlier then 9AM and no later then 12AM (morning)
       // And events that are no earlier then 1PM and no later then 5PM (afternoon)
     } else if (
-      (eventStartTime >= 9 && eventFinishTime <= 12) ||
-      (eventStartTime >= 13 && eventFinishTime < 17)
+      (eventStartTime >= 9 && eventStartTime < 12 && eventFinishTime <= 12) ||
+      (eventStartTime >= 13 && eventStartTime < 17 && eventFinishTime <= 17)
     ) {
       scheduledEvent.eventTitle = eventRecords[currentRecordIndex].originalText;
       scheduledEvent.eventTime = this.convertTimeToMin(eventStartTime);
       this.scheduledEvents.push(scheduledEvent);
 
       // Next Record
-      currentRecordIndex = currentRecordIndex + 1;
+      currentRecordIndex++;
       // Update the start time for next event
       eventStartTime = eventFinishTime;
       // If next record exist
@@ -97,7 +150,7 @@ export const Model = {
         eventFinishTime
       );
       // Schedule lunch time
-    } else if (eventFinishTime > 12 && eventFinishTime <= 13) {
+    } else {
       scheduledEvent.eventTitle = "Lunch";
       scheduledEvent.eventTime = "12:00PM";
       this.scheduledEvents.push(scheduledEvent);
@@ -111,41 +164,6 @@ export const Model = {
         eventStartTime,
         eventFinishTime
       );
-    } else {
-      // schedule if there is any small duration event that can fit in before 5PM
-      for (let i = currentRecordIndex; i < eventRecords.length; i++) {
-        if (eventStartTime + eventRecords[i].eventDuration / 60 <= 17) {
-          scheduledEvent.eventTitle = eventRecords[i].originalText;
-          scheduledEvent.eventTime = this.convertTimeToMin(eventStartTime);
-          this.scheduledEvents.push(scheduledEvent);
-
-          eventFinishTime = eventStartTime + eventRecords[i].eventDuration / 60;
-          eventStartTime = eventFinishTime;
-        }
-      }
-      // if no other event can fit it add networking at the end
-      if (
-        eventStartTime >= 17 ||
-        currentRecordIndex + 1 === eventRecords.length
-      ) {
-        this.scheduledEvents.push({
-          eventTitle: "Networking Event",
-          eventTime: this.convertTimeToMin(eventStartTime)
-        });
-
-        this.tracks.push(this.scheduledEvents);
-        // start a new track
-        this.scheduledEvents = [];
-        eventStartTime = 9;
-        eventFinishTime = eventStartTime + +eventRecords[currentRecordIndex].eventDuration / 60;
-
-        this.scheduleEvents(
-          eventRecords,
-          currentRecordIndex,
-          eventStartTime,
-          eventFinishTime
-        );
-      }
     }
   }
 };
