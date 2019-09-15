@@ -1,14 +1,16 @@
 export const Model = {
   convertTimeToMin(time) {
-    if (!time) return null;
+    if (!time || !+time || +time > 24) return null;
     let timeStamp = "AM";
     // Added 0 infront of the hours
     let hours = ("0" + Math.floor(time)).slice(-2);
     // Added 0 infront of the minutes
     let minutes = ("0" + Math.round((time - hours) * 60)).slice(-2);
     // Calculate the time stamp
-    if (hours > 12) {
+    if (hours > 12 && hours < 24) {
       timeStamp = "PM";
+    }
+    if (hours > 12) {
       hours = ("0" + Math.floor(hours - 12)).slice(-2);
     }
     return `${hours}:${minutes} ${timeStamp}`;
