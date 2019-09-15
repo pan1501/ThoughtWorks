@@ -1,4 +1,3 @@
-// import { shallowMount } from "@vue/test-utils";
 import { Model } from "@/store/Model.js";
 
 describe("Unit test for convertTimeToMin function", () => {
@@ -41,7 +40,7 @@ describe("Unit test for getPreprocessData function", () => {
     expect(Model.getPreprocessData(undefined)).toEqual([]);
   });
 
-  it("with some text data should seperate the event name and event duration", () => {
+  it("With test in task sheet should seperate the event name and event duration", () => {
     let rawData = `Writing Fast Tests Against Enterprise Rails 60min
 Overdoing it in Python 45min
 Lua for the Masses 30min
@@ -160,7 +159,7 @@ User Interface CSS in Rails Apps 30min`;
 });
 
 describe("Unit test for getScheduledEvents function", () => {
-  it("With test1 data it should return scheduled event", () => {
+  it("With test1 data (provided in task sheet) it should return scheduled event", () => {
     let preprocessData = [
       {
         eventDuration: "60",

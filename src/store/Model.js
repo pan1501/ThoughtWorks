@@ -13,6 +13,7 @@ export const Model = {
     if (hours > 12) {
       hours = ("0" + Math.floor(hours - 12)).slice(-2);
     }
+
     return `${hours}:${minutes} ${timeStamp}`;
   },
   // split event title and event duration from string
@@ -22,13 +23,16 @@ export const Model = {
     let preprocessData = [];
 
     splitedData = rawData.split("\n");
+    // Seperate each event with its title and duration
     splitedData.forEach(dataRecord => {
       let preprocessDataRecord = {};
       preprocessDataRecord.originalText = dataRecord;
       if (dataRecord.includes("lightning")) {
+        // lightning is 5 min accordding to the task sheet
         preprocessDataRecord.eventTitle = dataRecord.split("lightning")[0];
         preprocessDataRecord.eventDuration = "5";
       } else {
+        // Theres no number in the event title so can split by numbers
         preprocessDataRecord.eventTitle = dataRecord.split(/(\d+)/)[0];
         preprocessDataRecord.eventDuration = dataRecord.split(/(\d+)/)[1];
       }
